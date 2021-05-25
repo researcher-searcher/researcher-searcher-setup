@@ -17,7 +17,7 @@ env.read_env()
 DATADIR = env.str("DATADIR")
 if not os.path.exists(DATADIR):
     os.makedirs(DATADIR)
-PUBMEDDATA=f'{DATADIR}/pubmed_data.csv'
+PUBMEDDATA=f'{DATADIR}/pubmed_data.tsv'
 
 def read_existing():
     logger.info(f'Read existing downloaded pubmed data from {PUBMEDDATA}')
