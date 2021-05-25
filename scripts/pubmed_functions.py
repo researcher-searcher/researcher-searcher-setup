@@ -50,37 +50,49 @@ def doi_to_pmid(doiList):
 	return list(pmidList)
 
 def pubmed_xml_parser(pubmed_article):
-	if 'MedlineCitation' in pubmed_article:
-		if 'PMID' in pubmed_article['MedlineCitation']:
-			pmid = pubmed_article['MedlineCitation']['PMID']['#text']
-		else:
-			logger.info('No PMID')
-			return
-		if 'Article' in pubmed_article['MedlineCitation']:
-			if 'Abstract' in pubmed_article['MedlineCitation']['Article']:
-				abstract = pubmed_article['MedlineCitation']['Article']['Abstract']['AbstractText']
-			else:
-				logger.info('No Abstract')
-				abstract=''
-				#return
-			if 'ArticleTitle' in pubmed_article['MedlineCitation']['Article']:
-				title = pubmed_article['MedlineCitation']['Article']['ArticleTitle']
-			else:
-				logger.info('No ArticleTitle')
-				title=''
-				#return
-		else:
-			logger.info('No Article')
-			return
-		if 'DateCompleted' in pubmed_article['MedlineCitation']:
-			year = pubmed_article['MedlineCitation']['DateCompleted']['Year']
-		else:
-			#DataCompleted is missing for some
-			year=0
-			logger.info('No DateCompleted')
-		return pmid,title,abstract,year
-	else:
-		logger.info(f'error {pubmed_article}')
+    if 'MedlineCitation' in pubmed_article:
+        if 'PMID' in pubmed_article['MedlineCitation']:
+            pmid = pubmed_article['MedlineCitation']['PMID']['#text']
+        else:
+            logger.info('No PMID')
+            return
+        if 'Article' in pubmed_article['MedlineCitation']:
+            if 'Abstract' in pubmed_article['MedlineCitation']['Article']:
+                #logger.info(pubmed_article['MedlineCitation']['Article']['Abstract']['AbstractText'])
+                abstract = pubmed_article['MedlineCitation']['Article']['Abstract']['AbstractText']
+                if isinstance(abstract, list):
+                    try:
+                        abstract = abstract[0]['#text']
+                    except Exception as e:
+                        logger.warning(f'Abstract error {e}')
+                elif isinstance(abstract, dict):
+                    try:
+                        abstract = abstract['#text']
+                    except Exception as e:
+                        logger.warning(f'Abstract error {e}')
+            else:
+                logger.info('No Abstract')
+                abstract=''
+                #return
+            if 'ArticleTitle' in pubmed_article['MedlineCitation']['Article']:
+                title = pubmed_article['MedlineCitation']['Article']['ArticleTitle']
+            else:
+                logger.info('No ArticleTitle')
+                title=''
+                #return
+        else:
+            logger.info('No Article')
+            return
+        if 'DateCompleted' in pubmed_article['MedlineCitation']:
+            year = pubmed_article['MedlineCitation']['DateCompleted']['Year']
+        else:
+            #DataCompleted is missing for some
+            year=0
+            logger.info('No DateCompleted')
+            #logger.info(pubmed_article['MedlineCitation'])
+        return pmid,title,abstract,year
+    else:
+        logger.info(f'error {pubmed_article}')
 
 def get_pubmed_data_efetch(pmids):
 	logger.info(pmids)
@@ -101,7 +113,7 @@ def get_pubmed_data_efetch(pmids):
 		r = requests.get(url, params=params)
 		try:
 			r = requests.get(url, params=params)
-			records = xmltodict.parse(r.text)
+			records = xmltodict.parse(r.text,dict_constructor=dict)
 			with open(PUBMEDDATA, 'a', newline='') as csvfile:
 				fieldnames = ['pmid', 'year', 'title' , 'abstract']
 				writer = csv.DictWriter(csvfile, fieldnames=fieldnames,delimiter='\t')
