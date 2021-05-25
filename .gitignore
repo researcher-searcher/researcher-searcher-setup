@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 # custom
-data
+#data
+demo/output

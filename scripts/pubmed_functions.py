@@ -14,10 +14,10 @@ from environs import Env
 env = Env()
 env.read_env()
 
-DATADIR = env.str("DATADIR")
-if not os.path.exists(DATADIR):
-    os.makedirs(DATADIR)
-PUBMEDDATA=f'{DATADIR}/pubmed_data.tsv'
+OUTDIR = env.str("OUTDIR")
+if not os.path.exists(OUTDIR):
+    os.makedirs(OUTDIR)
+PUBMEDDATA=f'{OUTDIR}/pubmed_data.tsv'
 
 def read_existing():
     logger.info(f'Read existing downloaded pubmed data from {PUBMEDDATA}')

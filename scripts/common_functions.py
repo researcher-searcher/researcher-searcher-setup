@@ -9,10 +9,10 @@ from environs import Env
 env = Env()
 env.read_env()
 
-DATADIR = DATADIR = env.str("DATADIR")
-if not os.path.exists(DATADIR):
-    os.makedirs(DATADIR)
-ORCIDFILE = f'{DATADIR}/orcid_data.tsv'
+OUTDIR = env.str("OUTDIR")
+if not os.path.exists(OUTDIR):
+    os.makedirs(OUTDIR)
+ORCIDFILE = f'{OUTDIR}/orcid_data.tsv'
 
 def get_ids_from_orcid_public_api(orcid):
     resp = requests.get("http://pub.orcid.org/"+orcid+"/works/",
@@ -63,6 +63,7 @@ def orcid_to_pubmedData(orcid_ids:list):
     counter=0
     #for each orcid in list
     for o in orcid_ids:
+        o = o.strip()
         logger.info(f'Processing {o}')
         counter+=1
         if not any(d['orcid'] == o for d in orcidPmidData):
