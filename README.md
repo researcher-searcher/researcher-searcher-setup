@@ -5,3 +5,6 @@ Methods to create starting data for researcher searcher
 
 Fix issues with missing pubmed year when using eutils
 - use year from orcid
+
+Create instance for turing institute biographies?
+
