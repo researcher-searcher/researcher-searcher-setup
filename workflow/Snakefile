@@ -19,6 +19,7 @@ PURE_DONE = f'{OUTDIR}/done'
 
 configfile: f'{CONFIG_PATH}/data.yaml'
 
+# orcid method not working
 rule orcid:
     input: config['orcid_data']
     output: ORCID_RESEARCH_DATA
@@ -27,6 +28,7 @@ rule orcid:
         python -m workflow.scripts.orcid_to_pub --input {input} --output {output}
         """
 
+# use organisation name to find people
 rule pure_org_person:
     input: config['pure_org_url']
     output: PURE_PERSON_DATA
@@ -35,14 +37,16 @@ rule pure_org_person:
         python -m workflow.scripts.get_pure_people_from_org --input {input} --output {output} --top 1000
         """ 
 
+# use emails to find person via search
 rule find_pure_person:
     input: config['emails']
     output: PURE_PERSON_DATA
     shell: 
         """
-        python -m workflow.scripts.find_pure_people --input {input} --output {output} --top 10
+        python -m workflow.scripts.find_pure_people --input {input} --output {output} --top 1000
         """
 
+# get more info on people from PURE IDs
 rule get_pure_person_data:
     input: PURE_PERSON_DATA
     output: a=PURE_PERSON_METADATA,b=PURE_RESEARCH_METADATA
@@ -52,6 +56,7 @@ rule get_pure_person_data:
         python -m workflow.scripts.get_pure_research_metadata --input {input} --output {output.b}
         """
 
+# get research output info
 rule get_pure_research_details:
     input: PURE_RESEARCH_METADATA
     output: PURE_RESEARCH_DATA
