@@ -72,15 +72,15 @@ def uob_finder_web(email):
         e = p.find("span", text=re.compile(email, re.IGNORECASE))
         if e:
             logger.debug(f"{find_person} {e}")
-            person_page = find_person[0]["href"]
+            person_id = find_person[0]["href"]
             # get name
             # m = re.match()
             name = find_person[0].getText()
-            logger.debug(person_page)
-            person_info = {"page": person_page, "name": name, "email": email}
+            logger.debug(person_id)
+            person_info = {"person_id": person_id, "name": name, "email": email}
     if person_info == False:
         logger.debug("No page found")
-        person_info = {"page": "NA", "name": "NA", "email": email}
+        person_info = {"person_id": "NA", "name": "NA", "email": email}
     return person_info
 
 
