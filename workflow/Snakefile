@@ -1,0 +1,57 @@
+import os
+import pandas as pd
+import yaml
+
+configfile: 'demo/config/data.yaml'
+
+OUTDIR='workflow/results'
+
+ORCID_RESEARCH_DATA = f'{OUTDIR}/orcid_research_data'
+
+PURE_PERSON_DATA = f'{OUTDIR}/person_data'
+PURE_ORG_PERSON = f'{OUTDIR}/org_person'
+PURE_PERSON_METADATA = f'{OUTDIR}/person_metadata'
+PURE_RESEARCH_DATA = f'{OUTDIR}/research_data'
+PURE_RESEARCH_METADATA = f'{OUTDIR}/research_metadata'
+PURE_DONE = f'{OUTDIR}/done'
+
+rule orcid:
+    input: config['orcid_data']
+    output: ORCID_RESEARCH_DATA
+    shell:
+        """
+        python -m workflow.scripts.orcid_to_pub --input {input} --output {output}
+        """
+
+rule pure_org_person:
+    input: config['pure_org_url']
+    output: PURE_ORG_PERSON
+    shell: 
+        """
+        python -m workflow.scripts.get_pure_people_from_org --input {input} --output {output} --top 1000
+        """ 
+
+#rule find_pure_person:
+#    input: config['emails']
+#    output: PURE_PERSON_DATA
+#    shell: 
+#        """
+#        python -m workflow.scripts.find_pure_people --input {input} --output {output} --top 1000
+#        """
+
+rule get_pure_person_data:
+    input: PURE_ORG_PERSON
+    output: a=PURE_PERSON_METADATA,b=PURE_RESEARCH_METADATA
+    shell: 
+        """
+        python -m workflow.scripts.get_pure_person_data --input {input} --output {output.a}
+        python -m workflow.scripts.get_pure_research_metadata --input {input} --output {output.b}
+        """
+
+rule get_pure_research_details:
+    input: PURE_RESEARCH_METADATA
+    output: PURE_RESEARCH_DATA
+    shell:
+        """
+        python -m workflow.scripts.get_pure_research_data --input {input} --output {output}
+        """
