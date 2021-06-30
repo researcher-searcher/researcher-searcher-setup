@@ -12,82 +12,87 @@ env.read_env()
 OUTDIR = env.str("OUTDIR")
 if not os.path.exists(OUTDIR):
     os.makedirs(OUTDIR)
-ORCIDFILE = f'{OUTDIR}/orcid_data.tsv'
+ORCIDFILE = f"{OUTDIR}/orcid_data.tsv"
+
 
 def get_ids_from_orcid_public_api(orcid):
-    resp = requests.get("http://pub.orcid.org/"+orcid+"/works/",
-                        headers={'Accept':'application/orcid+json'})
+    resp = requests.get(
+        "http://pub.orcid.org/" + orcid + "/works/",
+        headers={"Accept": "application/orcid+json"},
+    )
     results = resp.json()
     pubData = []
-    if 'group' in results:
-        for i, result in enumerate( results['group']):
-            pubDic={}
+    if "group" in results:
+        for i, result in enumerate(results["group"]):
+            pubDic = {}
             # get year
-            year=result['work-summary'][0]['publication-date']['year']['value']
-            pubDic['year']=year
-            if 'publication-date' in result:
-                logger.debug(result['publication'])
-            if 'external-ids' in result:
-                for e in result['external-ids']['external-id']:
-                    if e['external-id-type']=='pmid':
-                        pmid = e['external-id-value']
-                        pubDic['pmid']=pmid
-                    elif e['external-id-type']=='doi':
-                        doi = e['external-id-value']
-                        pubDic['doi']=doi
-                
-            if len(pubDic)>0:
+            year = result["work-summary"][0]["publication-date"]["year"]["value"]
+            pubDic["year"] = year
+            if "publication-date" in result:
+                logger.debug(result["publication"])
+            if "external-ids" in result:
+                for e in result["external-ids"]["external-id"]:
+                    if e["external-id-type"] == "pmid":
+                        pmid = e["external-id-value"]
+                        pubDic["pmid"] = pmid
+                    elif e["external-id-type"] == "doi":
+                        doi = e["external-id-value"]
+                        pubDic["doi"] = doi
+
+            if len(pubDic) > 0:
                 pubData.append(pubDic)
     else:
-        logger.info('no data found')
+        logger.info("no data found")
     return pubData
 
-#wrapper function to get PubMed data from list of ORCID IDs
-def orcid_to_pubmedData(orcid_ids:list):
+
+# wrapper function to get PubMed data from list of ORCID IDs
+def orcid_to_pubmedData(orcid_ids: list):
     if not isinstance(orcid_ids, list):
-        logger.warning(f'{orcid_ids} is not a list!')
+        logger.warning(f"{orcid_ids} is not a list!")
         exit()
-    orcidPmidData=[]
-    #check for existing data first
+    orcidPmidData = []
+    # check for existing data first
     if os.path.exists(ORCIDFILE):
         with open(ORCIDFILE) as f:
             for line in f:
-                orcid,pmid = line.split('\t')
-                orcidPmidData.append({'orcid':orcid,'pmid':pmid})
-        orcidFile=open(ORCIDFILE,'a')
+                orcid, pmid = line.split("\t")
+                orcidPmidData.append({"orcid": orcid, "pmid": pmid})
+        orcidFile = open(ORCIDFILE, "a")
     else:
-        orcidFile=open(ORCIDFILE,'w')
-        orcidFile.write('orcid\tpmid\n')
+        orcidFile = open(ORCIDFILE, "w")
+        orcidFile.write("orcid\tpmid\n")
 
-    pubData=[]
-    counter=0
-    #for each orcid in list
+    pubData = []
+    counter = 0
+    # for each orcid in list
     for o in orcid_ids:
         o = o.strip()
-        logger.info(f'Processing {o}')
-        counter+=1
-        if not any(d['orcid'] == o for d in orcidPmidData):
-            logger.info(f'{counter} Getting ORCID data for {o}')
-            orcidData=get_ids_from_orcid_public_api(o)
+        logger.info(f"Processing {o}")
+        counter += 1
+        if not any(d["orcid"] == o for d in orcidPmidData):
+            logger.info(f"{counter} Getting ORCID data for {o}")
+            orcidData = get_ids_from_orcid_public_api(o)
             pubMedIDs = set()
             doiIDs = set()
             for i in orcidData:
-                if 'pmid' in i:
-                    pubMedIDs.add(i['pmid'])
-                if 'doi' in i:
-                    doiIDs.add(i['doi'])
-            logger.info(f'{len(pubMedIDs)} PMIDs')
-            logger.info(f'{len(doiIDs)} DOIs')
-            #convert DOIs to PubMedIDs
-            doi_pmid=doi_to_pmid(list(doiIDs))
-            allPMIDs = list(set(list(pubMedIDs)+list(doi_pmid)))
-            pubData=get_pubmed_data_efetch(allPMIDs)
+                if "pmid" in i:
+                    pubMedIDs.add(i["pmid"])
+                if "doi" in i:
+                    doiIDs.add(i["doi"])
+            logger.info(f"{len(pubMedIDs)} PMIDs")
+            logger.info(f"{len(doiIDs)} DOIs")
+            # convert DOIs to PubMedIDs
+            doi_pmid = doi_to_pmid(list(doiIDs))
+            allPMIDs = list(set(list(pubMedIDs) + list(doi_pmid)))
+            pubData = get_pubmed_data_efetch(allPMIDs)
             for p in allPMIDs:
-                orcidFile.write(o+'\t'+p+'\n')
+                orcidFile.write(o + "\t" + p + "\n")
         else:
-            logger.info(f'{o} done')
+            logger.info(f"{o} done")
     orcidFile.close()
     return pubData
+
 
 # #load orcid to pmid data
 # def load_orcid():
@@ -103,7 +108,7 @@ def orcid_to_pubmedData(orcid_ids:list):
 #                 orcidToPubmedID[orcid]=[pmid]
 #     return orcidToPubmedID
 
-#load the publication data
+# load the publication data
 # def load_pubmed():
 #     print('load_pubmed')
 #     pubmedText={}
@@ -115,7 +120,7 @@ def orcid_to_pubmedData(orcid_ids:list):
 #             pubmedText[row[0]]=text
 #     return pubmedText
 
-#create dictionary of orcid to publication text
+# create dictionary of orcid to publication text
 # def orcid_to_pubmed():
 #     print('orcid_to_pubmed')
 #     orcidToPubmedID=load_orcid()

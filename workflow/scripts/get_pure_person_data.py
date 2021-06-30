@@ -30,15 +30,13 @@ def read_file():
     logger.info(person_df.head())
     return person_df
 
+
 def get_person_data(url):
     logger.debug(url)
     try:
         res = requests.get(url)
         soup = BeautifulSoup(res.text, "html.parser")
-        name_data = soup.find(
-            "header",
-            class_="person-details"
-        )
+        name_data = soup.find("header", class_="person-details")
         person_data = soup.find(
             "div",
             class_="rendering rendering_person rendering_personorganisationlistrendererportal rendering_person_personorganisationlistrendererportal",
@@ -48,6 +46,7 @@ def get_person_data(url):
         logger.warning(f"get_person_data failed")
         person_data = orcid_data = name_data = "NA"
     return person_data, orcid_data, name_data
+
 
 def create_research_data(person_df):
     data = []
@@ -71,19 +70,19 @@ def create_research_data(person_df):
             logger.info(f"{rows['person_id']} already done")
         else:
             url = rows["person_id"]
-            if not url.startswith('https:'):
-                logger.warning(f'Bad URL: {url}')
+            if not url.startswith("https:"):
+                logger.warning(f"Bad URL: {url}")
                 continue
             person_data, orcid_data, name_data = get_person_data(url)
             d = {
                 "person_id": url,
-                "url":url,
-                "name" : "NA",
+                "url": url,
+                "name": "NA",
                 "job-description": "NA",
                 "org": [],
                 "orcid": "NA",
             }
-            #logger.debug(person_data)
+            # logger.debug(person_data)
             # get name
             try:
                 d["name"] = name_data.h1.getText()
@@ -103,33 +102,36 @@ def create_research_data(person_df):
                 logger.warning("No orcid data")
             # get org info
             try:
-                x = person_data.find_all('a')
+                x = person_data.find_all("a")
                 for i in x:
-                    if "Organisation" in i['rel']:
+                    if "Organisation" in i["rel"]:
                         org_name = i.getText()
-                        org_type = i.attrs['class'][1]
-                        org_url = i['href']
-                        #logger.debug(f'{org_name} {org_type}')
-                        d["org"].append(f'{org_name}::{org_type}::{org_url}')
-    
+                        org_type = i.attrs["class"][1]
+                        org_url = i["href"]
+                        # logger.debug(f'{org_name} {org_type}')
+                        d["org"].append(f"{org_name}::{org_type}::{org_url}")
+
             except:
-                logger.debug('No org data')
+                logger.debug("No org data")
             data.append(d)
-            
+
     # logger.info(data)
     person_details = pd.DataFrame(data)
     try:
         # explode the org data
-        person_details = person_details.explode('org')
+        person_details = person_details.explode("org")
         # create two columns
-        person_details[['org-name', 'org-type','org-url']] = person_details['org'].str.split('::', expand=True)
-        person_details.drop('org',axis=1,inplace=True)
+        person_details[["org-name", "org-type", "org-url"]] = person_details[
+            "org"
+        ].str.split("::", expand=True)
+        person_details.drop("org", axis=1, inplace=True)
     except:
-        logger.warning('No org data to explode')
+        logger.warning("No org data to explode")
     person_details.to_csv(f, sep="\t", index=False)
     mark_as_complete(args.output)
+
 
 if __name__ == "__main__":
     person_df = read_file()
     create_research_data(person_df)
-    #test()
+    # test()

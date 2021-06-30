@@ -56,8 +56,8 @@ def create_research_data(person_df):
             logger.debug(f"{rows['person_id']} already done")
         else:
             url = rows["person_id"]
-            if not url.startswith('https:'):
-                logger.warning(f'Bad URL: {url}')
+            if not url.startswith("https:"):
+                logger.warning(f"Bad URL: {url}")
                 continue
             research_output = get_research_output(url)
             # add empty row if no data
@@ -69,7 +69,11 @@ def create_research_data(person_df):
             for r in research_output:
                 # logger.debug(i)
                 data.append(
-                    {"person_id": rows["person_id"], "url": r["href"], "title": r.getText(separator=" ").strip().replace("\n", " ")}
+                    {
+                        "person_id": rows["person_id"],
+                        "url": r["href"],
+                        "title": r.getText(separator=" ").strip().replace("\n", " "),
+                    }
                 )
     # logger.debug(d)
     research_df = pd.DataFrame(data)
@@ -80,34 +84,42 @@ def create_research_data(person_df):
 def get_research_output(url):
     logger.debug(url)
     research_output = []
-    try:        
+    try:
         research_url = f"{url}/publications"
         res = requests.get(research_url)
         soup = BeautifulSoup(res.text, "html.parser")
-        research_output.extend(soup.find_all("a", class_="link", rel=re.compile("ContributionTo.*")))
+        research_output.extend(
+            soup.find_all("a", class_="link", rel=re.compile("ContributionTo.*"))
+        )
         logger.debug(len(research_output))
         # check for pagination
         pagination = soup.find("nav", class_="pages")
         if pagination:
-            for li in pagination.findAll('a',class_="step"):
+            for li in pagination.findAll("a", class_="step"):
                 page = int(li.getText())
                 logger.info(page)
                 research_url = f"{url}/publications/?page={page-1}"
                 logger.debug(research_url)
                 res = requests.get(research_url)
                 soup = BeautifulSoup(res.text, "html.parser")
-                research_output.extend(soup.find_all("a", class_="link", rel=re.compile("ContributionTo.*")))
+                research_output.extend(
+                    soup.find_all(
+                        "a", class_="link", rel=re.compile("ContributionTo.*")
+                    )
+                )
                 logger.debug(len(research_output))
     except:
         logger.warning("get_research_output failed")
-    #logger.debug(research_output)
+    # logger.debug(research_output)
     return research_output
 
+
 def test():
-    url='https://research-information.bris.ac.uk/en/persons/tom-r-gaunt'
+    url = "https://research-information.bris.ac.uk/en/persons/tom-r-gaunt"
     get_research_output(url)
+
 
 if __name__ == "__main__":
     person_df = read_file()
     create_research_data(person_df)
-    #test()
+    # test()

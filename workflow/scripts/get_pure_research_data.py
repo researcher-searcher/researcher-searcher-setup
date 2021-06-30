@@ -19,6 +19,7 @@ class Options:
 
     top: int = -1  # How many to read
 
+
 parser.add_arguments(Options, dest="options")
 
 args = parser.parse_args()
@@ -27,6 +28,7 @@ args = parser.parse_args()
 # https://research-information.bris.ac.uk/en/publications/skin-pigmentation-sun-exposure-and-vitamin-d-levels-in-children-o
 # https://research-information.bris.ac.uk/en/publications/improving-womens-diet-quality-preconceptionally-and-during-gestat
 # https://research-information.bris.ac.uk/en/publications/maternal-reproductive-hormones-and-angiogenic-factors-in-pregnanc
+
 
 def read_file():
     df = pd.read_csv(f"{args.input}.tsv.gz", sep="\t")
@@ -64,15 +66,17 @@ def create_research_data(df):
                 "title": rows["title"],
                 "abstract": "NA",
             }
-            abstract_data,pub_date = get_research_data(rows["url"])
+            abstract_data, pub_date = get_research_data(rows["url"])
             # logger.debug(abstract_data)
             try:
-                abstract = abstract_data.getText(separator=" ").strip().replace("\n", " ")
+                abstract = (
+                    abstract_data.getText(separator=" ").strip().replace("\n", " ")
+                )
                 d["abstract"] = abstract
-                #logger.debug(abstract)
+                # logger.debug(abstract)
             except:
                 logger.warning(f"No abstract for {rows['url']}")
-            d['year']=pub_date
+            d["year"] = pub_date
             data.append(d)
     # logger.debug(data)
     research_details = pd.DataFrame(data)
@@ -88,28 +92,27 @@ def get_research_data(url):
         "div",
         class_="rendering rendering_researchoutput rendering_researchoutput_abstractportal rendering_contributiontojournal rendering_abstractportal rendering_contributiontojournal_abstractportal",
     )
-    pub_status = soup.find(
-        "span",
-        class_="date"
-    )
+    pub_status = soup.find("span", class_="date")
     try:
         pub_date_text = pub_status.getText()
-        m = re.search(r'[12]\d{3}',pub_date_text)
+        m = re.search(r"[12]\d{3}", pub_date_text)
         if m:
             pub_date = m.group(0)
         else:
-            pub_date = 'NA'
+            pub_date = "NA"
     except:
-        pub_date = 'NA'
+        pub_date = "NA"
     logger.info(pub_date)
-    #logger.info(abstract_data.getText(separator=" ").strip().replace("\n", " "))
+    # logger.info(abstract_data.getText(separator=" ").strip().replace("\n", " "))
     return abstract_data, pub_date
 
+
 def test():
-    url='https://research-information.bris.ac.uk/en/publications/improving-womens-diet-quality-preconceptionally-and-during-gestat'
+    url = "https://research-information.bris.ac.uk/en/publications/improving-womens-diet-quality-preconceptionally-and-during-gestat"
     get_research_data(url)
+
 
 if __name__ == "__main__":
     df = read_file()
     create_research_data(df)
-    #test()
+    # test()

@@ -16,11 +16,13 @@ parser.add_argument("--output", type=str, help="Output file prefix")
 
 DATADIR = env.str("DATADIR")
 
+
 @dataclass
 class Options:
     """ Help string for this group of command-line arguments """
 
     top: int = -1  # How many emails to read
+
 
 parser.add_arguments(Options, dest="options")
 
@@ -31,5 +33,5 @@ logger.debug("options:", args.options.top)
 
 person_orcid_df = pd.read_csv(args.input)
 
-orcid_list = list(person_orcid_df['id'])
+orcid_list = list(person_orcid_df["id"])
 orcid_to_pubmedData(orcid_list)

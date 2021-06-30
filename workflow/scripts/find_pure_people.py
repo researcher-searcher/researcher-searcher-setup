@@ -29,8 +29,8 @@ logger.debug("options:", args.options.top)
 
 def read_emails():
     df = pd.read_csv(args.input, names=["email"])
-    #make lowercase
-    df['email'] = df['email'].str.lower()
+    # make lowercase
+    df["email"] = df["email"].str.lower()
     logger.info(df.shape)
     # check for dups
     df.drop_duplicates(inplace=True)
@@ -112,6 +112,7 @@ def get_all_people(email_df):
     logger.debug(email_df.head())
     email_df.to_csv(f, sep="\t", index=False)
     mark_as_complete(args.output)
+
 
 if __name__ == "__main__":
     email_df = read_emails()
