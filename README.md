@@ -17,10 +17,7 @@ orcid_data: path/to/orcid_file
 pure_org_url: path/to_org_file
 ```
 
-### todo
+### todo 
 
 Fix issues with missing pubmed year when using eutils
 - use year from orcid
-
-Create instance for turing institute biographies?
-
